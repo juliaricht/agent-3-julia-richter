@@ -7,6 +7,8 @@ Ein **PredictorAgent** erkennt Temperaturtrends (gleitender Durchschnitt + linea
 setzt ein `EarlyWarning`-Flag über OPC UA, und **MaintenanceAgents** kühlen die Maschine,
 bevor sie überhitzt.
 
+Demo-Video unter /reports
+
 ---
 
 ## Voraussetzungen
