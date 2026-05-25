@@ -1,4 +1,4 @@
-"""Headless-Tests fuer factory_model_de (kein OPC UA-Server noetig)."""
+"""Headless-Tests für factory_model_de (kein OPC UA-Server nötig)."""
 
 import factory_model_de as fm
 from factory_model_de import (
@@ -38,7 +38,7 @@ def test_order_heats_machine():
 
 
 def test_idle_machine_does_not_run_away():
-    # Leerlauf: Maschine driftet symmetrisch und kuehlt leicht -> kein Weglaufen.
+    # Leerlauf: Maschine driftet symmetrisch und kühlt leicht -> kein Weglaufen.
     model = _bare_model()
     machine = _place_machine(model, (2, 2), temp=30.0)
     for _ in range(60):
@@ -54,9 +54,9 @@ def test_decide_state_thresholds():
     machine.state = "OK"
     machine.decide()
     assert machine.state == "HOT"
-    assert model.hot_events_occurred == 1  # Uebergang in HOT gezaehlt
+    assert model.hot_events_occurred == 1  # Übergang in HOT gezaehlt
 
-    # Bleibt HOT -> kein erneutes Zaehlen
+    # Bleibt HOT -> kein erneutes Zählen
     machine.decide()
     assert model.hot_events_occurred == 1
 
@@ -139,7 +139,7 @@ def test_order_continuous_generation():
         model.step()
         total_open += count_orders(model)
 
-    # Anders als frueher (einmalig erzeugt -> faellt auf 0): der Backlog erholt
+    # Anders als früher (einmalig erzeugt -> fällt auf 0):  Backlog erholt
     # sich kontinuierlich. Mittlere offene Auftragszahl bleibt deutlich > 0.
     assert total_open / steps > 1.0
     assert count_orders(model) > 0  # am Ende erholt
@@ -156,7 +156,7 @@ def test_model_runs_without_error():
 
 
 def test_early_warning_fires_before_hot():
-    # Eine kontinuierlich geheizte Maschine muss eine Frühwarnung ausloesen,
+    # Eine kontinuierlich geheizte Maschine muss eine Frühwarnung auslösen,
     # BEVOR sie HOT wird (Trendprognose).
     model = _bare_model()
     machine = _place_machine(model, (2, 2))
@@ -174,7 +174,7 @@ def test_early_warning_fires_before_hot():
 
 
 def test_early_warning_published_to_opc_buffer():
-    # Frühwarnung muss in den OPC-Puffer geschrieben werden (Signalweg ueber OPC UA):
+    # Frühwarnung muss in den OPC-Puffer geschrieben werden (Signalweg über OPC UA):
     # opcua_writer -> Mxx_EarlyWarning-Knoten -> opcua_reader -> server_flags.
     model = _bare_model()
     machine = _place_machine(model, (2, 2), name="M01")
@@ -212,7 +212,7 @@ def test_reset_parameters():
 
 
 def test_predictive_beats_reactive():
-    # Validierung: praediktiv erzeugt weniger tatsaechliche HOT-Ereignisse als rein reaktiv.
+    # Validierung: prädiktiv erzeugt weniger tatsächliche HOT-Ereignisse als rein reaktiv.
     def occurred(use_pred, seed):
         m = FactoryModelExtended(width=10, height=10, density=0.2, threshold=70,
                                  n_maintenance=2, n_orders=10, seed=seed)
@@ -240,7 +240,7 @@ def test_system_tends_to_low_hot():
     n = count_machines(model)
     # Im eingeschwungenen Zustand sind fast keine Maschinen HOT.
     assert last_avg < max(2.0, 0.1 * n)
-    # Praevention dominiert ueber tatsaechliche HOT-Ereignisse.
+    # Prävention dominiert ueber tatsaechliche HOT-Ereignisse.
     assert model.hot_events_prevented > model.hot_events_occurred
 
 
