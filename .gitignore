@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / Tool
+.vscode/
+.claude/
+
+# KI-Instruktionen & interne Planungsdateien
+CLAUDE.md
+tasks/
+
+# Interne Docs
+docs/concept.md
+docs/reflection.md
+
+# Sonstiges
+src/nul.png
