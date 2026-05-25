@@ -1,6 +1,6 @@
 # Predictive-Maintenance-Agenten
 
-Portfolio-Aufgabe (Ostfalia, Internet of Production, SoSe 26) —
+Portfolio-Aufgabe Szenario 3 —
 Multi-Agenten-Fabriksimulation mit vorausschauender Wartung via OPC UA.
 
 Ein **PredictorAgent** erkennt Temperaturtrends (gleitender Durchschnitt + lineare Regression),
