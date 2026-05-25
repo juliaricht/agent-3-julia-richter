@@ -3,16 +3,16 @@
 Beantwortet die Frage: "Ist der Erfolg echt oder unrealistisch?"
 
 Zwei Experimente:
-  1. KONTROLLGRUPPEN-VERGLEICH ueber mehrere Seeds:
+  1. KONTROLLGRUPPEN-VERGLEICH über mehrere Seeds:
        a) ohne Wartung            (n_maintenance=0)
        b) rein reaktiv            (use_prediction=False) -> repariert erst bei HOT
-       c) praediktiv (Frühwarnung)(use_prediction=True)  -> kuehlt vor HOT
+       c) praediktiv (Frühwarnung)(use_prediction=True)  -> kühlt vor HOT
      Erwartung: c << b << a bei der HOT-Quote. So zeigt sich, dass der Gewinn
-     tatsaechlich von den Agenten/der Prognose kommt und kein Artefakt ist.
+     tatsächlich von den Agenten/der Prognose kommt und kein Artefakt ist.
 
-  2. LASTSENSITIVITAET: order_heat hochdrehen.
-     Erwartung: irgendwann kippt auch das praediktive System -> es ist NICHT
-     trivial immer perfekt, sondern reagiert plausibel auf Ueberlast.
+  2. LASTSENSITIVITäT: order_heat hochdrehen.
+     Erwartung: irgendwann kippt auch das prädiktive System -> es ist NICHT
+     trivial immer perfekt, sondern reagiert plausibel auf Überlast.
 
 Aufruf:
     .venv\\Scripts\\python.exe src\\validate_model.py
@@ -26,7 +26,7 @@ from factory_model_de import (
 
 
 def run_once(steps=200, warmup=50, seed=0, **params):
-    """Ein Lauf. Gibt Kennzahlen im eingeschwungenen Zustand (nach warmup) zurueck."""
+    """Ein Lauf. Gibt Kennzahlen im eingeschwungenen Zustand (nach warmup) zurück."""
     m = FactoryModelExtended(
         width=10, height=10, density=0.2, threshold=70,
         n_maintenance=params.pop("n_maintenance", 2),
@@ -73,11 +73,11 @@ def main():
     print("  => Der niedrige HOT-Wert kommt nachweislich von der Frühwarnung,")
     print("     nicht von einem Modellartefakt.")
 
-    print("\n=== Experiment 2: Lastsensitivitaet (praediktiv, 2 Agenten) ===")
+    print("\n=== Experiment 2: Lastsensitivität (praediktiv, 2 Agenten) ===")
     for oh in (1.0, 2.0, 3.0, 4.0, 6.0):
         aggregate(f"order_heat={oh}", seeds, n_maintenance=2,
                   use_prediction=True, order_heat=oh)
-    print("  => Steigt die Last (order_heat), waechst die HOT-Quote auch im")
+    print("  => Steigt die Last (order_heat), steigt die HOT-Quote auch im")
     print("     praediktiven System -> das Verhalten ist plausibel, nicht 'magisch'.")
     print("     Gegenmittel im Live-Panel: mehr Wartungsagenten oder mehr Kühlleistung.\n")
 
