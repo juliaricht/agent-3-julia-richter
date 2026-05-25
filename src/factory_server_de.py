@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""Asynchroner OPC UA Factory-Server (lauffaehige Skript-Version).
+"""Asynchroner OPC UA Factory-Server (lauffähige Skript-Version).
 
 Extrahiert aus 01_OPC_Server_template_de.ipynb, damit der Server per
 start_server.bat als eigenstaendiges Skript gestartet werden kann.
@@ -173,7 +173,7 @@ class FactoryOpcUaServer:
 
 
 async def main():
-    # asyncua-Adressraum-Logger ruhigstellen (sonst sehr gespraechig)
+    # asyncua-Adressraum-Logger ruhigstellen 
     logging.getLogger("asyncua.server.address_space").setLevel(logging.WARNING)
 
     factory_server = FactoryOpcUaServer()
