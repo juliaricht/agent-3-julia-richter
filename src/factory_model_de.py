@@ -1,10 +1,10 @@
-"""Fabrikmodell und Agenten (Mesa 3.x) - aus dem Notebook extrahiert.
+"""Fabrikmodell und Agenten (Mesa 3.x).
 
-Dieses Modul enthaelt die komplette Simulationslogik (Maschinen-, Wartungs-
+Dieses Modul enthält die Simulationslogik (Maschinen-, Wartungs-
 und Auftragsagenten sowie das erweiterte Fabrikmodell). Es ist bewusst von der
 OPC UA-Anbindung entkoppelt: Agenten lesen/schreiben nur die unten definierten
-Modul-Puffer (einfache dicts). Laeuft kein OPC UA-Task, bleiben die Puffer leer
-und das Modell ist vollstaendig eigenstaendig lauffaehig (z. B. fuer pytest).
+Modul-Puffer (einfache dicts). Läuft kein OPC UA-Task, bleiben die Puffer leer
+und das Modell ist vollständig eigenstädig lauffähig (z. B. für pytest).
 
 Das Notebook importiert dieselben Puffer-Objekte aus diesem Modul, sodass die
 OPC UA-Writer/Reader-Tasks und die Agenten denselben Zustand teilen.
@@ -36,8 +36,8 @@ server_flags: dict = {}
 def set_opcua_buffers(write=None, repair=None, earlywarning=None, flags=None):
     """Ersetzt die Modul-Puffer durch eigene dicts (v. a. fuer Tests/Isolation).
 
-    Im Normalbetrieb nicht noetig - das Notebook importiert die Puffer direkt.
-    Im Test ermoeglicht der Setter frische, isolierte Puffer pro Testfall.
+    Im Normalbetrieb nicht nötig - das Notebook importiert Puffer direkt.
+    Im Test ermöglicht der Setter frische, isolierte Puffer pro Testfall.
     """
     global opcua_write_buffer, opcua_repair_buffer, opcua_earlywarning_buffer, server_flags
     if write is not None:
@@ -62,22 +62,22 @@ def reset_opcua_buffers():
 # Agenten
 # ─────────────────────────────────────────────────────────────────────────────
 class MachineAgent(Agent):
-    """Reaktiver Maschinenagent mit OPC UA-Anbindung ueber gemeinsamen Datenpuffer."""
+    """Reaktiver Maschinenagent mit OPC UA-Anbindung über gemeinsamen Datenpuffer."""
 
     def __init__(self, model, threshold=70, machine_name=None):
         super().__init__(model)
         self.temperature = 20.0
         self.threshold = threshold
         self.state = "OK"
-        self.prev_state = "OK"  # Zustandsuebergang HOT erkennen
+        self.prev_state = "OK"  # Zustandsübergang HOT erkennen
         self.busy = False
         self.machine_name = machine_name
         self.early_warning = False                 # lokale Trendprognose
         self._ew_published = False                  # zuletzt an OPC gemeldeter EW-Wert
-        self.temp_history = deque([20.0], maxlen=6)  # fuer die Trendberechnung
+        self.temp_history = deque([20.0], maxlen=6)  # für die Trendberechnung
 
     def sense_temperature(self):
-        # HOT-Maschinen brauchen Wartung, um abzukuehlen (kein Selbstheilen).
+        # HOT-Maschinen brauchen Wartung, um abzukühlen (kein Selbstheilen).
         # Sonst symmetrisches Rauschen (netto ~0): Hitze entsteht durch ARBEIT
         # (belegte Maschinen, +5/Schritt durch Auftraege), nicht durch Drift.
         if self.state == "HOT":
@@ -85,7 +85,7 @@ class MachineAgent(Agent):
         d = self.model.temp_drift_max
         self.temperature += random.uniform(-d, d)
         if not self.busy:
-            # Leerlauf: leichte Abkuehlung Richtung Umgebungstemperatur (20°C)
+            # Leerlauf: leichte Abkühlung Richtung Umgebungstemperatur (20°C)
             self.temperature += (20.0 - self.temperature) * 0.05
         self.temperature = max(15.0, self.temperature)
 
@@ -100,7 +100,7 @@ class MachineAgent(Agent):
             self.state = "COOL"
         else:
             self.state = "OK"
-        # HOT-Ereignis zaehlen (nur beim ersten Uebergang in HOT)
+        # HOT-Ereignis zählen (nur beim ersten Übergang in HOT)
         if self.state == "HOT" and self.prev_state != "HOT":
             self.model.hot_events_occurred += 1
 
@@ -135,7 +135,7 @@ class MachineAgent(Agent):
                 "State":       self.state,
                 "Busy":        self.busy,
             }
-            # Frühwarnung ueber OPC UA veroeffentlichen (nur bei Aenderung).
+            # Frühwarnung ueber OPC UA veröffentlichen (nur bei Aenderung).
             # Der opcua_writer schreibt den Wert auf den Knoten Mxx_EarlyWarning,
             # der opcua_reader liest ihn zurueck in server_flags -> echter
             # Signalweg Maschine -> OPC UA Server -> Wartungsagent.
@@ -157,18 +157,18 @@ def machine_is_warned(machine):
 class MaintenanceAgent(Agent):
     """Praediktiv-reaktiver Wartungsagent.
 
-    Steuert aktiv frühgewarnte / heisse Maschinen an und kuehlt sie, BEVOR sie
-    HOT werden (Praevention) bzw. repariert sie, falls bereits HOT. Dadurch
-    strebt das System einen Zustand mit moeglichst wenigen HOT-Maschinen an.
+    Steuert aktiv frühgewarnte / heiße Maschinen an und kühlt sie, BEVOR sie
+    HOT werden (Prävention) bzw. repariert sie, falls bereits HOT. Dadurch
+    strebt das System einen Zustand mit möglichst wenigen HOT-Maschinen an.
 
-    Prioritaeten pro step():
-      1. heisseste frühgewarnte Maschine (lokal ODER OPC) ansteuern/kuehlen
-      2. sonst heisseste Maschine ueber Beobachtungsschwelle ansteuern/kuehlen
+    Prioritöäten pro step():
+      1. heißeste frühgewarnte Maschine (lokal ODER OPC) ansteuern/kühlen
+      2. sonst heißeste Maschine über Beobachtungsschwelle ansteuern/kühlen
       3. stehen bleiben, wenn alles ruhig ist
     """
 
     def _cool_machine(self, machine):
-        """Kuehlt eine Maschine und zaehlt Praevention bzw. Reparatur."""
+        """Kühlt eine Maschine und zählt Prävention bzw. Reparatur."""
         thr = self.model.threshold
         war_hot = machine.state == "HOT"
         machine.temperature = max(20.0, machine.temperature - self.model.cooling_power)
@@ -178,14 +178,14 @@ class MaintenanceAgent(Agent):
             "HOT"
         )
         if war_hot:
-            # reaktive Reparatur: HOT zurueck auf sicheres Niveau
+            # reaktive Reparatur: HOT zurück auf sicheres Niveau
             machine.temperature = min(machine.temperature, self.model.repair_target)
             machine.state = "OK"
             machine.busy = False
             if machine.machine_name:
                 opcua_repair_buffer[machine.machine_name] = False
         else:
-            # praeventive Kuehlung -> HOT verhindert; Frühwarnung aufheben
+            # präventive Kühlung -> HOT verhindert; Frühwarnung aufheben
             self.model.hot_events_prevented += 1
             machine.early_warning = False
             machine._ew_published = False
@@ -198,11 +198,11 @@ class MaintenanceAgent(Agent):
         target_temp = -1.0
 
         if self.model.use_prediction:
-            # Heisseste relevante Maschine ansteuern. "Relevant" = bereits HOT
-            # (Reparatur, hoechste Temperatur -> hoechste Prioritaet), frühgewarnt
-            # (lokal ODER OPC) oder ueber Beobachtungsschwelle (60% des Schwellwerts).
+            # Heißeste relevante Maschine ansteuern. "Relevant" = bereits HOT
+            # (Reparatur, höchste Temperatur -> höchste Priorität), frühgewarnt
+            # (lokal ODER OPC) oder über Beobachtungsschwelle (60% des Schwellwerts).
             # Da nach Temperatur sortiert wird, werden HOT-Maschinen zuerst behandelt
-            # und trotzdem Frühwarnungen praeventiv gekuehlt.
+            # und trotzdem Frühwarnungen präventiv gekühlt.
             watch_temp = 0.6 * thr
             for agent in self.model.agents:
                 if not isinstance(agent, MachineAgent):
@@ -228,20 +228,20 @@ class MaintenanceAgent(Agent):
                 self.model.grid.move_agent(self, target.pos)
                 self._cool_machine(target)
             else:
-                # einen Schritt Richtung Sorgenkind
+                # test
                 nx = cx + (1 if tx > cx else -1 if tx < cx else 0)
                 ny = cy + (1 if ty > cy else -1 if ty < cy else 0)
                 self.model.grid.move_agent(self, (nx, ny))
             return
 
-        # Prioritaet 3: alles ruhig -> stehen bleiben (kein nervoeses Springen)
+        # Priorität 3: alles ruhig -> stehen bleiben (kein nervöses "Springen")
 
 
 class OrderAgent(Agent):
-    """Produktionsauftrag: sucht eine freie Maschine, belegt sie fuer 'duration' Schritte.
+    """Produktionsauftrag: sucht eine freie Maschine, belegt sie fürr 'duration' Schritte.
 
-    Unbelegte Auftraege bewegen sich gerichtet zur naechsten freien Maschine
-    (statt rein zufaellig), was das "Herumspringen" in der Visualisierung reduziert.
+    Unbelegte Aufträge bewegen sich gerichtet zur nächsten freien Maschine
+    (statt rein zufällig), was das "Herumspringen" in der Visualisierung reduziert.
     """
 
     def __init__(self, model, duration=10):
@@ -258,7 +258,7 @@ class OrderAgent(Agent):
         self.model.grid.move_agent(self, (nx, ny))
 
     def _nearest_free_machine_pos(self):
-        """Position der naechstgelegenen freien (nicht HOT, nicht belegten) Maschine."""
+        """Position der nächstgelegenen freien (nicht HOT, nicht belegten) Maschine."""
         best_pos = None
         best_dist = None
         cx, cy = self.pos
@@ -360,7 +360,7 @@ def prevention_rate(model):
 class FactoryModelExtended(Model):
     """Erweitertes Fabrikmodell mit Maschinen-, Wartungs- und Auftragsagenten.
 
-    Live veraenderbare Parameter (vom Steuerpanel mutierbar):
+    Live veränderbare Parameter (mit Steuerpanel veränderbar):
       threshold, cooling_power, repair_target, temp_drift_max,
       order_spawn_rate, target_backlog
     """
@@ -372,18 +372,18 @@ class FactoryModelExtended(Model):
         self.height = height
         self.grid = MultiGrid(width, height, torus=False)
 
-        # Live veraenderbare Parameter
+        # Live veränderbare Parameter
         self.threshold        = threshold
-        self.cooling_power    = 15.0           # praeventive Kuehlung (EarlyWarning)
+        self.cooling_power    = 15.0           # präventive Kühlung (EarlyWarning)
         self.repair_target    = threshold - 40  # Zieltemperatur nach HOT-Reparatur
         self.temp_drift_max   = 2.0            # obere Grenze von sense_temperature
         self.order_spawn_rate = 0.3            # Wahrscheinlichkeit pro fehlendem Auftrag
-        self.target_backlog   = n_orders       # angestrebte Anzahl offener Auftraege
-        self.order_heat       = 2.0            # Erwaermung pro Schritt durch einen Auftrag
-        self.warn_lookahead   = 5              # Prognosehorizont (Schritte) fuer Frühwarnung
-        self.use_prediction   = True           # True=praediktiv (Frühwarnung), False=rein reaktiv
+        self.target_backlog   = n_orders       # angestrebte Anzahl offener Aufträge
+        self.order_heat       = 2.0            # Erwärmung pro Schritt durch einen Auftrag
+        self.warn_lookahead   = 5              # Prognosehorizont (Schritte) für Frühwarnung
+        self.use_prediction   = True           # True=prädiktiv (Frühwarnung), False=rein reaktiv
 
-        # Standardwerte fuer den "Zuruecksetzen"-Knopf merken
+        # Standardwerte für den "Zuruecksetzen"-Knopf merken
         self._param_defaults = {
             "threshold":        self.threshold,
             "cooling_power":    self.cooling_power,
@@ -397,9 +397,9 @@ class FactoryModelExtended(Model):
         self._default_n_maintenance = n_maintenance
 
         # Kennzahlen
-        self.hot_events_occurred  = 0  # Maschinen die tatsaechlich HOT wurden
-        self.hot_events_prevented = 0  # Maschinen die praeventiv gekuehlt wurden
-        self.orders_completed     = 0  # kumuliert abgeschlossene Auftraege
+        self.hot_events_occurred  = 0  # Maschinen die tatsächlich HOT wurden
+        self.hot_events_prevented = 0  # Maschinen die präventiv gekühlt wurden
+        self.orders_completed     = 0  # kumuliert abgeschlossene Aufträge
 
         for _ in range(n_orders):
             pos = (self.random.randrange(width), self.random.randrange(height))
@@ -435,12 +435,12 @@ class FactoryModelExtended(Model):
         self.datacollector.collect(self)
 
     def add_maintenance_agent(self):
-        """Fuegt einen Wartungsagenten an zufaelliger Position hinzu (auch live)."""
+        """Fügt einen Wartungsagenten an zufälliger Position hinzu (auch live)."""
         pos = (self.random.randrange(self.width), self.random.randrange(self.height))
         self.grid.place_agent(MaintenanceAgent(self), pos)
 
     def remove_maintenance_agent(self):
-        """Entfernt einen Wartungsagenten (auch live). Gibt True bei Erfolg zurueck."""
+        """Entfernt einen Wartungsagenten (auch live). Gibt True bei Erfolg zurück."""
         for a in list(self.agents):
             if isinstance(a, MaintenanceAgent):
                 self.grid.remove_agent(a)
@@ -449,7 +449,7 @@ class FactoryModelExtended(Model):
         return False
 
     def set_maintenance_count(self, n):
-        """Setzt die Anzahl der Wartungsagenten live auf n (fuegt hinzu/entfernt)."""
+        """Setzt die Anzahl der Wartungsagenten live auf n (fügt hinzu/entfernt)."""
         n = max(0, int(n))
         cur = count_maintenance(self)
         while cur < n:
@@ -461,13 +461,13 @@ class FactoryModelExtended(Model):
             cur -= 1
 
     def reset_parameters(self):
-        """Setzt alle Live-Parameter auf die Standardwerte zurueck."""
+        """Setzt alle Live-Parameter auf die Standardwerte zurüvk."""
         for k, v in self._param_defaults.items():
             setattr(self, k, v)
         self.set_maintenance_count(self._default_n_maintenance)
 
     def _spawn_orders(self):
-        """Erzeugt neue Auftraege bis zum Ziel-Backlog (kontinuierliche Last)."""
+        """Erzeugt neue Aufträge bis zum Ziel-Backlog."""
         deficit = self.target_backlog - count_orders(self)
         for _ in range(max(0, deficit)):
             if self.random.random() < self.order_spawn_rate:
