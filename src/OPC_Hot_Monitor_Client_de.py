@@ -28,7 +28,7 @@
 #              └─ ...
 # ```
 # 
-# Annahmen (im Code leicht anpassbar):
+# Annahmen:
 # 
 # - `Temperature` ist ein `Double`-Wert für jede Maschine.
 # - Jede `Mxx_RepairNeeded`-Variable unter `Factory/Maintenance/Jobs` ist eine **boolesche** Variable:
@@ -43,7 +43,7 @@
 
 # ## 1. Benötigte Pakete installieren
 # 
-# Falls `asyncua`, `nest_asyncio` und `wait-for2==0.3.2` noch nicht installiert sind, führen Sie die folgende Zelle einmalig aus.
+# Falls `asyncua`, `nest_asyncio` und `wait-for2==0.3.2` noch nicht installiert sind, folgende Zelle einmalig ausführen.
 # 
 
 # In[ ]:
@@ -54,8 +54,8 @@
 
 # ## 2. Imports, Konfiguration und Event-Loop-Einrichtung
 # 
-# Wir konfigurieren den OPC UA-Endpunkt und die Namespace-URI passend zum Fabrik-Server
-# und bereiten `nest_asyncio` vor, damit wir `await` in Jupyter komfortabel nutzen können.
+#  konfigurieren des OPC UA-Endpunkt und die Namespace-URI passend zum Fabrik-Server
+# und vorbereiten von `nest_asyncio`, damit  `await` in Jupyter nutzbar ist.
 # 
 
 # In[1]:
@@ -83,7 +83,7 @@ print("HOT-Schwellenwert:", HOT_THRESHOLD, "°C")
 
 # ## 3. Maschinenerkennung und Browse-Hilfsfunktionen
 # 
-# Wir nehmen an, dass:
+# Annahmen:
 # 
 # - alle Maschinen direkte Kinder von `Factory/Machines` sind und
 # - alle Reparaturauftrag-Flags Kinder von `Factory/Maintenance/Jobs` sind,
@@ -171,13 +171,13 @@ async def discover_machines_with_jobs(client: Client) -> Dict[str, MachineNodes]
 
 # ## 4. HOT-Erkennung und Auftragsverwaltung
 # 
-# Das Verhalten ist wie folgt definiert:
+#  Verhalten ist wie folgt definiert:
 # 
 # - Eine Temperatur gilt als **HOT**, wenn sie größer oder gleich `HOT_THRESHOLD` ist.
 # - Ein Reparaturauftrag *existiert*, wenn das entsprechende `Mxx_RepairNeeded`-Flag `True` ist.
 # - Um einen Reparaturauftrag anzulegen, wird das boolesche Flag einfach auf `True` gesetzt.
 # 
-# Wir halten die Logik bewusst einfach, ohne JSON-Nutzdaten.
+
 # 
 
 # In[3]:
@@ -337,7 +337,7 @@ async def subscription_hot_monitor(runtime_seconds: float = 60.0, publishing_int
 
 # ## 7. Den HOT-Monitor starten
 # 
-# Wähle einen der folgenden Aufrufe in einer separaten Zelle, um den Client zu starten:
+#einen der folgenden Aufrufe in einer separaten Zelle wählen, um den Client zu starten:
 # 
 # ```python
 # # Polling-basiertes Monitoring für 60 Sekunden
@@ -347,8 +347,7 @@ async def subscription_hot_monitor(runtime_seconds: float = 60.0, publishing_int
 # await subscription_hot_monitor(runtime_seconds=60.0, publishing_interval_ms=500)
 # ```
 # 
-# > **Wichtig:** Stelle sicher, dass dein Fabrik-OPC-UA-Server bereits läuft,
-# > bevor du einen dieser Aufrufe ausführst.
+# >
 # 
 
 # In[6]:
