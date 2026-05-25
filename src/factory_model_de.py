@@ -21,9 +21,9 @@ from mesa.datacollection import DataCollector
 # ─────────────────────────────────────────────────────────────────────────────
 # Gemeinsame Datenpuffer (Entkopplung Mesa <-> OPC UA)
 #   - opcua_write_buffer:        Maschinenname -> {Temperature, State, Busy}
-#   - opcua_repair_buffer:       RepairNeeded-Flags die zurueckgesetzt werden
-#   - opcua_earlywarning_buffer: EarlyWarning-Flags die zurueckgesetzt werden
-#   - server_flags:              vom Reader befuellt, von Agenten gelesen
+#   - opcua_repair_buffer:       RepairNeeded-Flags die zurückgesetzt werden
+#   - opcua_earlywarning_buffer: EarlyWarning-Flags die zurückgesetzt werden
+#   - server_flags:              vom Reader befüllt, von Agenten gelesen
 # Das Notebook importiert diese Objekte direkt; die OPC-Tasks mutieren sie
 # in-place, daher teilen Agenten und Tasks denselben Zustand.
 # ─────────────────────────────────────────────────────────────────────────────
